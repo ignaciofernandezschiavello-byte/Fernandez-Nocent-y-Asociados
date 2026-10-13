@@ -24,12 +24,11 @@ header.addEventListener('keydown', event => {
 });
 window.matchMedia('(min-width: 801px)').addEventListener('change', () => closeMenu());
 
-// Deliberately local validation: no endpoint, storage, analytics, or data transfer.
+// FormSubmit sends submissions to the studio mailbox after email activation.
 const form = document.querySelector('#contact-form');
 const status = document.querySelector('#form-status');
-const validateButton = document.querySelector('#validate-button');
-validateButton.disabled = false;
-function validateQuery(event) {
+const sendButton = document.querySelector('#validate-button');
+form.addEventListener('submit', async event => {
   event.preventDefault();
   for (const field of form.querySelectorAll('[required]')) {
     field.setCustomValidity('');
@@ -40,14 +39,34 @@ function validateQuery(event) {
     message.setCustomValidity('Escriba una consulta de al menos 10 caracteres.');
   }
   if (!form.reportValidity()) {
-    status.textContent = 'Revise los campos obligatorios. Su consulta no fue enviada.';
+    status.textContent = 'Revise los campos obligatorios.';
     return;
   }
-  status.textContent = 'Los datos son válidos. Su consulta no fue enviada: el envío del formulario aún no está habilitado. Contáctenos por WhatsApp, correo o teléfono.';
-}
-form.addEventListener('submit', validateQuery);
-validateButton.addEventListener('click', validateQuery);
+  sendButton.disabled = true;
+  status.textContent = 'Enviando consulta…';
+  try {
+    const payload = Object.fromEntries(new FormData(form).entries());
+    const response = await fetch(form.action, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const data = await response.json();
+    if (!response.ok || String(data.success).toLowerCase() !== 'true') {
+      const activation = /activat|confirm/i.test(String(data.message || ''));
+      status.textContent = activation
+        ? 'El formulario está pendiente de activación. El estudio debe confirmar el correo de FormSubmit. Mientras tanto, escriba directamente a estudiofnconsultores@gmail.com.'
+        : 'No pudimos confirmar el envío. Escriba directamente a estudiofnconsultores@gmail.com.';
+      return;
+    }
+    status.textContent = 'Consulta enviada correctamente. Gracias por contactarnos.';
+    form.reset();
+  } catch (error) {
+    status.textContent = 'No se pudo enviar la consulta. Escriba directamente a estudiofnconsultores@gmail.com.';
+  } finally {
+    sendButton.disabled = false;
+  }
+});
 form.addEventListener('input', event => {
   if (typeof event.target.setCustomValidity === 'function') event.target.setCustomValidity('');
-  status.textContent = '';
 });
