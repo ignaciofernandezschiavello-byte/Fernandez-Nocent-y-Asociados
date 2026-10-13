@@ -50,3 +50,21 @@ Se comprobó en Chromium con Playwright:
 - Antecedentes: comparación de todos los párrafos del equipo con el archivo original, sin cambios.
 
 HTML, CSS, JavaScript y favicon suman aproximadamente 31,5 KB sin comprimir. No se incorporaron dependencias al sitio; las herramientas de verificación se usaron fuera del repositorio. No se verificó el sitio publicado ni otros motores de navegador.
+
+## Vista previa completa y rutas de GitHub Pages
+
+La vista previa debe servir **todo el directorio del repositorio**, no una copia aislada de `index.html`. Mantener `assets/` junto al HTML. Las rutas `assets/styles.css`, `assets/site.js` y `assets/favicon.svg` son relativas: funcionan tanto en la raíz como bajo `/Fernandez-Nocent-y-Asociados/`, sin apuntar erróneamente a `/assets/` del dominio.
+
+Para comprobar un despliegue de proyecto sin publicar, también se puede iniciar el servidor desde `/workspace` y solicitar internamente `/Fernandez-Nocent-y-Asociados/`. No se necesita cambiar las rutas ni incorporar un elemento `base`.
+
+En la revisión de presentación se verificaron ambos escenarios con Chromium, a 1440 y 390 px:
+
+- CSS: HTTP 200, `text/css`; JavaScript: HTTP 200, `text/javascript`; favicon: HTTP 200, `image/svg+xml`.
+- Tipografías computadas: Arial/Helvetica en el cuerpo y Georgia/Times New Roman en los encabezados.
+- Fondo de portada computado: `rgb(18, 62, 70)` (`#123e46`); color del cuerpo: `rgb(24, 52, 58)`.
+- Espaciado superior de portada: 78 px en escritorio y 52 px en móvil.
+- Distribución `grid`: dos columnas en escritorio y una en móvil, sin desbordamiento horizontal; JavaScript activo y sin errores.
+
+Se reprodujo la presentación sin estilos sirviendo una copia del HTML sin `assets/`: las solicitudes de CSS y JavaScript devolvieron 404 con HTML como respuesta, y se mostraron tipografía y distribución predeterminadas. La vista previa original del usuario no estuvo disponible para inspección, por lo que esta reproducción identifica una causa compatible, no confirma la configuración de aquella vista previa. Las rutas del proyecto completo no presentaron ese fallo.
+
+Se corrigieron dos detalles detectados en las capturas: flechas diagonales mediante SVG local para evitar glifos ausentes y separación entre frases del panel de portada en móvil. No se modificó el diseño.
